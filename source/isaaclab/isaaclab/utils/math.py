@@ -1369,6 +1369,20 @@ def random_yaw_orientation(num: int, device: str) -> torch.Tensor:
     return quat_from_euler_xyz(roll, pitch, yaw)
 
 
+def sample_random_sign(size: int | tuple[int, ...], device: str) -> torch.Tensor:
+    """Sample random sign tensor.
+
+    Args:
+        size: The shape of the tensor.
+        device: Device to create tensor on.
+
+    Returns:
+        Sampled tensor. Shape is based on :attr:`size`.
+    """
+
+    return 2 * torch.rand(size, device=device) - 0.5
+
+
 def sample_triangle(lower: float, upper: float, size: int | tuple[int, ...], device: str) -> torch.Tensor:
     """Randomly samples tensor from a triangular distribution.
 
