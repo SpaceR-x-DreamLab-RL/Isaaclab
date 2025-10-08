@@ -51,6 +51,9 @@ x-default-isaac-lab-volumes: &default-isaac-lab-volumes
   - type: bind
     source: ../tools
     target: ${DOCKER_ISAACLAB_PATH}/tools
+  - type: bind
+    source: ../../${EXTENSION_NAME}
+    target: ${DOCKER_ISAACLAB_RANSV2_PATH}
     # The effect of these volumes is twofold:
     # 1. Prevent root-owned files from flooding the _build and logs dir
     #    on the host machine
@@ -88,13 +91,15 @@ services:
     profiles: [ "base" ]
     env_file: .env.base
     build:
-      context: ../
-      dockerfile: docker/Dockerfile.base
+      context: ../../
+      dockerfile: Isaaclab/docker/Dockerfile.base
       args:
         - ISAACSIM_BASE_IMAGE_ARG=${ISAACSIM_BASE_IMAGE}
         - ISAACSIM_VERSION_ARG=${ISAACSIM_VERSION}
         - ISAACSIM_ROOT_PATH_ARG=${DOCKER_ISAACSIM_ROOT_PATH}
         - ISAACLAB_PATH_ARG=${DOCKER_ISAACLAB_PATH}
+        - ISAACLAB_RANSV2_PATH_ARG=${DOCKER_ISAACLAB_RANSV2_PATH}
+        - EXTENSION_NAME_ARG=${EXTENSION_NAME}
         - DOCKER_USER_HOME_ARG=${DOCKER_USER_HOME}
     image: isaac-lab-base${DOCKER_NAME_SUFFIX-}
     container_name: isaac-lab-base${DOCKER_NAME_SUFFIX-}
