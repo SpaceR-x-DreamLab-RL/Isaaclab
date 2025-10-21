@@ -49,7 +49,7 @@ RUN --mount=type=cache,target=/var/cache/apt \
     rm -rf /var/lib/apt/lists/*
 
 # Copy the Isaac Lab directory (files to exclude are defined in .dockerignore)
-COPY ../ ${ISAACLAB_PATH}
+COPY ./Isaaclab ${ISAACLAB_PATH}
 
 # Ensure isaaclab.sh has execute permissions
 RUN chmod +x ${ISAACLAB_PATH}/isaaclab.sh
@@ -106,6 +106,14 @@ RUN echo "export ISAACLAB_PATH=${ISAACLAB_PATH}" >> ${HOME}/.bashrc && \
     echo "shopt -s histappend" >> /root/.bashrc && \
     echo "PROMPT_COMMAND='history -a'" >> /root/.bashrc
 
-# make working directory as the Isaac Lab directory
-# this is the default directory when the container is run
-WORKDIR ${ISAACLAB_PATH}
+
+###################################
+# EXTENSION TEMPLATE INSTALLATION #
+###################################
+ARG ISAACLAB_RANSV2_PATH_ARG
+ENV ISAACLAB_RANSV2_PATH=${ISAACLAB_RANSV2_PATH_ARG}
+ARG EXTENSION_NAME_ARG
+ENV EXTENSION_NAME=${EXTENSION_NAME_ARG}
+COPY ./${EXTENSION_NAME} ${ISAACLAB_RANSV2_PATH}
+WORKDIR ${ISAACLAB_RANSV2_PATH}
+RUN ${ISAACLAB_PATH}/isaaclab.sh -p -m pip install source/${EXTENSION_NAME}
