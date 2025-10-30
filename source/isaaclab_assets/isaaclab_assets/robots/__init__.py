@@ -28,6 +28,7 @@ from .leatherback import *
 from .leatherback_full import *
 from .modular_freeflyer import *
 from .pick_and_place import *
+from .pingu import *
 from .quadcopter import *
 from .ridgeback_franka import *
 from .sawyer import *
