@@ -237,6 +237,61 @@ POSE_MARKER_3D_CFG = VisualizationMarkersCfg(
     }
 )
 
+TRACK_CFG = VisualizationMarkersCfg(
+    markers={
+        "track_segment": sim_utils.CylinderCfg(
+            radius=0.02,  # Thin line
+            height=1.0,   # Will be scaled per segment
+            axis="Z",
+            visual_material=sim_utils.PreviewSurfaceCfg(diffuse_color=(0.6, 0.6, 0.6)),  # Yellow
+        ),
+    }
+)
+"""Configuration for the track/path marker (as a series of cylinder segments)."""
+
+##
+# Racing markers.
+##
+
+GATE_3D_CFG = VisualizationMarkersCfg(
+    markers={
+        "gate_3d": sim_utils.Gate3DCfg(
+            width=0.5,
+            height=0.5,
+            depth=0.05,
+            thickness=0.05,
+            corner_material=sim_utils.PreviewSurfaceCfg(diffuse_color=(1.0, 1.0, 1.0)),
+            front_material=sim_utils.PreviewSurfaceCfg(diffuse_color=(0.0, 0.0, 1.0)),
+            back_material=sim_utils.PreviewSurfaceCfg(diffuse_color=(1.0, 0.0, 0.0)),
+        ),
+    }
+)
+GATE_2D_CFG = VisualizationMarkersCfg(
+    markers={
+        "gate_2d": sim_utils.Gate2DCfg(
+            width=0.5,
+            height=0.5,
+            depth=0.05,
+            thickness=0.05,
+            corner_material=sim_utils.PreviewSurfaceCfg(diffuse_color=(1.0, 1.0, 1.0)),
+            front_material=sim_utils.PreviewSurfaceCfg(diffuse_color=(0.0, 0.0, 1.0)),
+            back_material=sim_utils.PreviewSurfaceCfg(diffuse_color=(1.0, 0.0, 0.0)),
+        ),
+    }
+)
+GATE_PYLONS_CFG = VisualizationMarkersCfg(
+    markers={
+        "gate_pylons": sim_utils.GatePylonsCfg(
+            width=0.5,
+            radius=0.05,
+            height=0.5,
+            left_pole_material=sim_utils.PreviewSurfaceCfg(diffuse_color=(0.0, 1.0, 0.0)),
+            right_pole_material=sim_utils.PreviewSurfaceCfg(diffuse_color=(1.0, 0.0, 0.0)),
+        ),
+    }
+)
+
+
 
 ##
 # Racing markers.
