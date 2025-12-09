@@ -7,6 +7,7 @@
 
 
 import isaaclab.sim as sim_utils
+from isaaclab.actuators import ImplicitActuatorCfg
 from isaaclab.assets import ArticulationCfg
 from isaaclab_assets import ISAACLAB_ASSETS_DATA_DIR
 
@@ -42,6 +43,28 @@ PINGU_CFG = ArticulationCfg(
             "left_elbow_joint": -0.4,
         },
     ),
-    actuators={},
+    actuators={
+        "left_arm": ImplicitActuatorCfg(
+            joint_names_expr=["left_shoulder_joint", "left_elbow_joint"],
+            effort_limit_sim=15.0,
+            velocity_limit_sim=2.5,
+            stiffness=100.0,
+            damping=0.0,
+        ),
+        "right_arm": ImplicitActuatorCfg(
+            joint_names_expr=["right_shoulder_joint", "right_elbow_joint"],
+            effort_limit_sim=15.0,
+            velocity_limit_sim=2.5,
+            stiffness=100.0,
+            damping=0.0,
+        ),
+        "reaction_wheel": ImplicitActuatorCfg(
+            joint_names_expr=["rw_revolute_joint"],
+            effort_limit_sim=10.0,
+            velocity_limit_sim=100.0,
+            stiffness=0.0,
+            damping=0.5,
+        ),
+    },
 )
 """Configuration for a simple floating platform robot."""
