@@ -9,6 +9,7 @@
 import isaaclab.sim as sim_utils
 from isaaclab.assets import ArticulationCfg
 from isaaclab_assets import ISAACLAB_ASSETS_DATA_DIR
+from isaaclab.actuators import ImplicitActuatorCfg
 
 ##
 # Configuration
@@ -40,6 +41,14 @@ CUBO_CFG = ArticulationCfg(
             ".*": 0.0,
         },
     ),
-    actuators={},
+    actuators={
+        "reaction_wheel": ImplicitActuatorCfg(
+            joint_names_expr=["rw_revolute_joint"],
+            effort_limit_sim=10.0,
+            velocity_limit_sim=100.0,
+            stiffness=0.0,
+            damping=0.5,
+        ),
+    },
 )
 """Configuration for a simple floating platform robot."""
