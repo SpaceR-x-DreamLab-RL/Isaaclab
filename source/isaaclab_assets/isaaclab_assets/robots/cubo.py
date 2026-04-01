@@ -17,7 +17,7 @@ from isaaclab.actuators import ImplicitActuatorCfg
 
 CUBO_CFG = ArticulationCfg(
     spawn=sim_utils.UsdFileCfg(
-        usd_path=f"{ISAACLAB_ASSETS_DATA_DIR}/Robots/SpaceR-TheDreamLab/Cubo/cubo.usd",
+        usd_path=f"{ISAACLAB_ASSETS_DATA_DIR}/Robots/SpaceR-TheDreamLab/UniluFP_RL/unilu_FP_cubo_rotated.usd",
         rigid_props=sim_utils.RigidBodyPropertiesCfg(
             disable_gravity=True,
             rigid_body_enabled=True,
@@ -43,7 +43,7 @@ CUBO_CFG = ArticulationCfg(
     ),
     actuators={
         "reaction_wheel": ImplicitActuatorCfg(
-            joint_names_expr=["rw_revolute_joint"],
+            joint_names_expr=["reaction_wheel_joint"],
             effort_limit_sim=10.0,
             velocity_limit_sim=100.0,
             stiffness=0.0,

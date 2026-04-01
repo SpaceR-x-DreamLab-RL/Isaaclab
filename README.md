@@ -3,6 +3,11 @@
 ---
 
 # Files From Isaaclab-RANSv2
+`Isaaclab/source/isaaclab_tasks/isaaclab_tasks/utils/parse_cfg.py`
+Modified
+```
+load_cfg_from_checkpoint
+```
 `source/isaaclab_assets/isaaclab_assets/robots`
 
 Modified

@@ -17,7 +17,7 @@ from isaaclab_assets import ISAACLAB_ASSETS_DATA_DIR
 
 PINGU_CFG = ArticulationCfg(
     spawn=sim_utils.UsdFileCfg(
-        usd_path=f"{ISAACLAB_ASSETS_DATA_DIR}/Robots/SpaceR-TheDreamLab/Pingu/pingu.usd",
+        usd_path=f"{ISAACLAB_ASSETS_DATA_DIR}/Robots/SpaceR-TheDreamLab/UniluFP_RL/unilu_FP_pingu_rotated.usd",
         activate_contact_sensors=False,
         rigid_props=sim_utils.RigidBodyPropertiesCfg(
             disable_gravity=True,
@@ -41,7 +41,6 @@ PINGU_CFG = ArticulationCfg(
     ),
     init_state=ArticulationCfg.InitialStateCfg(
         pos=(0.0, 0.0, 0.1),
-        rot=(0.924, 0.0, 0.0, 0.383),
         joint_pos={
             ".*shoulder_joint": 0.0,
             "right_elbow_joint": 0.4,
@@ -62,7 +61,7 @@ PINGU_CFG = ArticulationCfg(
             damping=80.0,
         ),
         "reaction_wheel": ImplicitActuatorCfg(
-            joint_names_expr=["rw_revolute_joint"],
+            joint_names_expr=["reaction_wheel_joint"],
             effort_limit_sim=10.0,
             velocity_limit_sim=100.0,
             stiffness=0.0,

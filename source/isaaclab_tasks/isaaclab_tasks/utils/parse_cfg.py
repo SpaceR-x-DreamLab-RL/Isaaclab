@@ -115,6 +115,29 @@ def load_cfg_from_registry(task_name: str, entry_point_key: str) -> dict | objec
             cfg = cfg_cls
     return cfg
 
+def load_cfg_from_checkpoint(checkpoint_path: str, task_name: str, entry_point_key: str) -> dict | object:
+    # config_file_path = "/".join(checkpoint_path.split("/")[:-1]) + "/params/agent.yaml"
+    checkpoint_dir = os.path.dirname(checkpoint_path)
+    config_file_path = os.path.join(checkpoint_dir, "params", "agent.yaml")
+
+    if os.path.exists(config_file_path):
+        print(f"[INFO]: Loading configuration from: {config_file_path}")
+        with open(config_file_path, encoding="utf-8") as f:
+            cfg_yaml = yaml.full_load(f)
+
+        # obtain the configuration entry point
+        cfg_entry_point = gym.spec(task_name).kwargs.get(entry_point_key)
+
+        if isinstance(cfg_entry_point, str):
+            mod_name, attr_name = cfg_entry_point.split(":")
+            mod = importlib.import_module(mod_name)
+            cfg_cls = getattr(mod, attr_name)
+            cfg = cfg_cls(**cfg_yaml)
+
+    else:
+        raise ValueError(f"Could not find configuration file \'{config_file_path}\' in the checkpoint directory.")
+
+    return cfg
 
 def parse_env_cfg(
     task_name: str, device: str = "cuda:0", num_envs: int | None = None, use_fabric: bool | None = None
