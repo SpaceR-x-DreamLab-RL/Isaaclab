@@ -1,3 +1,8 @@
+# Copyright (c) 2022-2026, The Isaac Lab Project Developers (https://github.com/isaac-sim/IsaacLab/blob/main/CONTRIBUTORS.md).
+# All rights reserved.
+#
+# SPDX-License-Identifier: BSD-3-Clause
+
 # Copyright (c) 2022-2025, The Isaac Lab Project Developers.
 # All rights reserved.
 #
@@ -6,10 +11,11 @@
 """Configuration for a simple ackermann robot."""
 
 
-import isaaclab.sim as sim_utils
-from isaaclab.assets import ArticulationCfg
 from isaaclab_assets import ISAACLAB_ASSETS_DATA_DIR
+
+import isaaclab.sim as sim_utils
 from isaaclab.actuators import ImplicitActuatorCfg
+from isaaclab.assets import ArticulationCfg
 
 ##
 # Configuration
@@ -44,10 +50,10 @@ CUBO_CFG = ArticulationCfg(
     actuators={
         "reaction_wheel": ImplicitActuatorCfg(
             joint_names_expr=["reaction_wheel_joint"],
-            effort_limit_sim=10.0,
-            velocity_limit_sim=100.0,
+            effort_limit_sim=40000.0,
+            velocity_limit_sim=100000.0,
             stiffness=0.0,
-            damping=0.5,
+            damping=0.0,
         ),
     },
 )

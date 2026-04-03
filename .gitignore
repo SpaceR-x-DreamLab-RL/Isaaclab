@@ -73,3 +73,5 @@ tests/
 
 # No urdf
 **/*.urdf
+**/*.zip
+**/*.glb

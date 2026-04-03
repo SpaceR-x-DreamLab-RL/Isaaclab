@@ -1,4 +1,4 @@
-# Copyright (c) 2022-2025, The Isaac Lab Project Developers (https://github.com/isaac-sim/IsaacLab/blob/main/CONTRIBUTORS.md).
+# Copyright (c) 2022-2026, The Isaac Lab Project Developers (https://github.com/isaac-sim/IsaacLab/blob/main/CONTRIBUTORS.md).
 # All rights reserved.
 #
 # SPDX-License-Identifier: BSD-3-Clause
@@ -241,7 +241,7 @@ TRACK_CFG = VisualizationMarkersCfg(
     markers={
         "track_segment": sim_utils.CylinderCfg(
             radius=0.02,  # Thin line
-            height=1.0,   # Will be scaled per segment
+            height=1.0,  # Will be scaled per segment
             axis="Z",
             visual_material=sim_utils.PreviewSurfaceCfg(diffuse_color=(0.6, 0.6, 0.6)),  # Yellow
         ),
@@ -290,7 +290,6 @@ GATE_PYLONS_CFG = VisualizationMarkersCfg(
         ),
     }
 )
-
 
 
 ##

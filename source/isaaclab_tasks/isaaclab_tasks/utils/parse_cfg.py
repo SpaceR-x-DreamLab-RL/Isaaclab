@@ -1,4 +1,4 @@
-# Copyright (c) 2022-2025, The Isaac Lab Project Developers (https://github.com/isaac-sim/IsaacLab/blob/main/CONTRIBUTORS.md).
+# Copyright (c) 2022-2026, The Isaac Lab Project Developers (https://github.com/isaac-sim/IsaacLab/blob/main/CONTRIBUTORS.md).
 # All rights reserved.
 #
 # SPDX-License-Identifier: BSD-3-Clause
@@ -115,6 +115,7 @@ def load_cfg_from_registry(task_name: str, entry_point_key: str) -> dict | objec
             cfg = cfg_cls
     return cfg
 
+
 def load_cfg_from_checkpoint(checkpoint_path: str, task_name: str, entry_point_key: str) -> dict | object:
     # config_file_path = "/".join(checkpoint_path.split("/")[:-1]) + "/params/agent.yaml"
     checkpoint_dir = os.path.dirname(checkpoint_path)
@@ -135,9 +136,10 @@ def load_cfg_from_checkpoint(checkpoint_path: str, task_name: str, entry_point_k
             cfg = cfg_cls(**cfg_yaml)
 
     else:
-        raise ValueError(f"Could not find configuration file \'{config_file_path}\' in the checkpoint directory.")
+        raise ValueError(f"Could not find configuration file '{config_file_path}' in the checkpoint directory.")
 
     return cfg
+
 
 def parse_env_cfg(
     task_name: str, device: str = "cuda:0", num_envs: int | None = None, use_fabric: bool | None = None
