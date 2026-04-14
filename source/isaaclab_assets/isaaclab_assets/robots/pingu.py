@@ -24,7 +24,6 @@ from isaaclab.assets import ArticulationCfg
 PINGU_CFG = ArticulationCfg(
     spawn=sim_utils.UsdFileCfg(
         usd_path=f"{ISAACLAB_ASSETS_DATA_DIR}/Robots/SpaceR-TheDreamLab/UniluFP_RL/unilu_FP_pingu_rotated.usd",
-        activate_contact_sensors=False,
         rigid_props=sim_utils.RigidBodyPropertiesCfg(
             disable_gravity=True,
             max_linear_velocity=1000.0,
@@ -45,6 +44,7 @@ PINGU_CFG = ArticulationCfg(
             # sleep_threshold=0.005,
             # stabilization_threshold=0.001,
         ),
+        activate_contact_sensors=True,
     ),
     init_state=ArticulationCfg.InitialStateCfg(
         pos=(0.0, 0.0, 0.1),
