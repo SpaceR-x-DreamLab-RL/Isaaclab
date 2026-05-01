@@ -127,6 +127,70 @@ class RslRlRNNModelCfg(RslRlMLPModelCfg):
 
 
 @configclass
+class RslRlMLPHypernetModelCfg(RslRlMLPModelCfg):
+    """Configuration for the MLP hypernet model.
+
+    This model conditions its MLP layers on a *context* observation stream via a hypernetwork. The context stream is
+    read from ``obs_groups[context_obs_set]`` (default ``f"{obs_set}_context"``). The general (input) stream is read
+    from ``obs_groups[obs_set]`` exactly as for :class:`RslRlMLPModelCfg`.
+
+    The ``obs_groups`` dictionary on the runner config must therefore include a context entry, e.g.::
+
+        obs_groups = {
+            "actor": ["policy"],         "actor_context": ["semantic"],
+            "critic": ["policy"],        "critic_context": ["semantic"],
+        }
+    """
+
+    class_name: str = "MLPHypernetModel"
+    """The model class name. Defaults to MLPHypernetModel."""
+
+    network_type: Literal["hybrid", "pure"] = "hybrid"
+    """The hypernet variant.
+
+    - ``"hybrid"``: the body is a standard MLP and only the output layer is hypernet-modulated.
+    - ``"pure"``: every linear layer is hyper-generated from the context.
+    """
+
+    use_embeddings: bool = True
+    """Whether the hypernet generator embeds the context input before the generator network."""
+
+    embeddings_size: int = 64
+    """Embedding size used when ``use_embeddings`` is True."""
+
+    generator_hidden_dims: list[int] = MISSING
+    """Hidden dimensions of the hypernet generator network."""
+
+    context_obs_set: str | None = None
+    """Observation set name used for the hypernet context stream.
+
+    If ``None``, defaults to ``f"{obs_set}_context"`` (i.e. ``"actor_context"`` for the actor, ``"critic_context"``
+    for the critic). The referenced set must exist in ``obs_groups``.
+    """
+
+
+@configclass
+class RslRlRNNHypernetModelCfg(RslRlMLPHypernetModelCfg):
+    """Configuration for the RNN hypernet model.
+
+    The general (input) stream is passed through an RNN before feeding the hypernet MLP body. The context stream is
+    fed raw to the hypernetwork (no temporal smoothing).
+    """
+
+    class_name: str = "RNNHypernetModel"
+    """The model class name. Defaults to RNNHypernetModel."""
+
+    rnn_type: str = MISSING
+    """The type of RNN to use. Either "lstm" or "gru"."""
+
+    rnn_hidden_dim: int = MISSING
+    """The dimension of the RNN layers."""
+
+    rnn_num_layers: int = MISSING
+    """The number of RNN layers."""
+
+
+@configclass
 class RslRlCNNModelCfg(RslRlMLPModelCfg):
     """Configuration for CNN model."""
 
