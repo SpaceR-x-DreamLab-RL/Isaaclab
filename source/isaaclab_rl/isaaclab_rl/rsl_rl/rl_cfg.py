@@ -64,6 +64,22 @@ class RslRlMLPModelCfg:
         class_name: str = "HeteroscedasticGaussianDistribution"
         """The distribution class name. Default is HeteroscedasticGaussianDistribution."""
 
+    @configclass
+    class BetaDistributionCfg(DistributionCfg):
+        """Configuration for the Beta output distribution.
+
+        The Beta distribution is naturally bounded to [0, 1] and is linearly rescaled to
+        ``action_range``. The MLP head must output a tensor of shape ``[..., 2, output_dim]``
+        (raw alpha and beta parameters), so this distribution is heteroscedastic-like.
+        """
+
+        class_name: str = "BetaDistribution"
+        """The distribution class name. Default is BetaDistribution."""
+
+        action_range: tuple[float, float] = (-1.0, 1.0)
+        """Interval ``(min, max)`` to which Beta samples in ``[0, 1]`` are linearly rescaled.
+        Defaults to ``(-1.0, 1.0)``."""
+
     stochastic: bool = MISSING
     """Whether the model output is stochastic.
 
