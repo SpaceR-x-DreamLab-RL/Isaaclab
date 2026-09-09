@@ -1,3 +1,8 @@
+# Copyright (c) 2022-2026, The Isaac Lab Project Developers (https://github.com/isaac-sim/IsaacLab/blob/main/CONTRIBUTORS.md).
+# All rights reserved.
+#
+# SPDX-License-Identifier: BSD-3-Clause
+
 # Copyright (c) 2022-2025, The Isaac Lab Project Developers.
 # All rights reserved.
 #
@@ -5,13 +10,15 @@
 
 """Configuration of JAXA Int-Ball2 robot."""
 
+from isaaclab_assets import ISAACLAB_ASSETS_DATA_DIR
+
 import isaaclab.sim as sim_utils
 from isaaclab.assets import ArticulationCfg
-from isaaclab.utils.assets import REPO_ROOT_PATH
 
 INTBALL2_LOCAL_CFG = ArticulationCfg(
     spawn=sim_utils.UsdFileCfg(
-        usd_path=f"{REPO_ROOT_PATH}/assets/robots/JAXAIntBall2_SM.usd",
+        usd_path=f"{ISAACLAB_ASSETS_DATA_DIR}/Robots/SpaceR-TheDreamLab/Intball2/JAXAIntBall2.usd",
+        activate_contact_sensors=False,
         rigid_props=sim_utils.RigidBodyPropertiesCfg(
             rigid_body_enabled=True,
             max_linear_velocity=1000.0,
@@ -27,7 +34,6 @@ INTBALL2_LOCAL_CFG = ArticulationCfg(
             sleep_threshold=0.005,
             stabilization_threshold=0.001,
         ),
-        activate_contact_sensors=True,
     ),
     init_state=ArticulationCfg.InitialStateCfg(
         pos=(0.0, 0.0, 0.5),
