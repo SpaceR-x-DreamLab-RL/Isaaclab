@@ -13,7 +13,7 @@ from dataclasses import MISSING
 import isaacsim.core.utils.prims as prim_utils
 import omni.log
 from isaacsim.core.utils.stage import get_current_stage
-from pxr import Gf, Sdf, Usd, UsdGeom, UsdPhysics
+from pxr import Gf, Sdf, Usd, UsdGeom, UsdPhysics, PhysxSchema
 
 from isaaclab_assets import ISAACLAB_ASSETS_DATA_DIR
 
@@ -54,6 +54,85 @@ def _matrix_to_pos_quat(matrix: Gf.Matrix4d) -> tuple[Gf.Vec3f, Gf.Quatf]:
         Gf.Vec3f(translation[0], translation[1], translation[2]),
         Gf.Quatf(quat.GetReal(), imaginary[0], imaginary[1], imaginary[2]),
     )
+
+
+def _attach_electromagnets(stage, arms_path: str, cfg) -> None:
+    """Reuse the existing fixed tool joints; the mesh's +Y cap is the working face."""
+    magnet_stage = Usd.Stage.Open(cfg.electromagnet_usd_path)
+    if magnet_stage is None:
+        raise FileNotFoundError(cfg.electromagnet_usd_path)
+    bounds = UsdGeom.BBoxCache(Usd.TimeCode.Default(), [UsdGeom.Tokens.default_]).ComputeWorldBound(
+        magnet_stage.GetDefaultPrim()).ComputeAlignedRange()
+    size = bounds.GetSize()
+    radius = cfg.magnet_diameter / 2.0
+    if cfg.magnet_mass <= 0 or any(abs(bounds.GetMin()[i] - expected) > 1e-5
+                                for i, expected in enumerate((-radius, 0.0, -radius))):
+        raise ValueError("Magnet needs positive mass and a back-face origin at Y=0, with its axis along +Y")
+    if abs(UsdGeom.GetStageMetersPerUnit(magnet_stage) - 1.0) > 1e-6 or any(
+        abs(size[i] - expected) > 1e-5
+        for i, expected in enumerate((cfg.magnet_diameter, cfg.magnet_depth, cfg.magnet_diameter))
+    ):
+        raise ValueError(f"Electromagnet dimensions/units mismatch: {size}; expected metres, "
+                         f"{cfg.magnet_diameter} diameter and {cfg.magnet_depth} depth")
+    arms_world = UsdGeom.Xformable(stage.GetPrimAtPath(arms_path)).ComputeLocalToWorldTransform(Usd.TimeCode.Default())
+    for side in ("left", "right"):
+        tool_path = f"{arms_path}/{side}_tool"
+        tool = stage.GetPrimAtPath(tool_path)
+        elbow = stage.GetPrimAtPath(f"{arms_path}/{side}_elbow")
+        joint = UsdPhysics.Joint(stage.GetPrimAtPath(f"{arms_path}/joints/{side}_tool_joint"))
+        if not tool.IsValid() or not elbow.IsValid() or not joint:
+            raise RuntimeError(f"Missing {side} elbow/tool/fixed joint")
+        if not joint.GetPrim().IsA(UsdPhysics.FixedJoint):
+            raise RuntimeError(f"{side} magnet must use a fixed elbow-to-tool joint")
+        # The magnet is an axial continuation of the elbow, rather than sharing
+        # the robot body's forward direction. Align tool +X with the vector
+        # from the elbow pivot to its tip, independently for each arm.
+        tip = joint.GetLocalPos0Attr().Get()
+        axis = Gf.Vec3d(*tip).GetNormalized()
+        rotation = Gf.Rotation(Gf.Vec3d(1, 0, 0), axis).GetQuat()
+        joint.GetLocalRot0Attr().Set(Gf.Quatf(rotation.GetReal(), Gf.Vec3f(*rotation.GetImaginary())))
+        joint.GetLocalRot1Attr().Set(Gf.Quatf(1.0))
+        # The old empty tool prims have inconsistent authored poses. Place the
+        # now-massive links at their actual fixed-joint frames before simulation.
+        frame0 = _frame_matrix(joint.GetLocalPos0Attr().Get(), joint.GetLocalRot0Attr().Get())
+        frame1 = _frame_matrix(joint.GetLocalPos1Attr().Get(), joint.GetLocalRot1Attr().Get())
+        elbow_world = UsdGeom.Xformable(elbow).ComputeLocalToWorldTransform(Usd.TimeCode.Default())
+        tool_local = frame1.GetInverse() * frame0 * elbow_world * arms_world.GetInverse()
+        xf = UsdGeom.Xformable(tool)
+        xf.ClearXformOpOrder()
+        xf.AddTransformOp().Set(tool_local)
+        visual = UsdGeom.Xform.Define(stage, f"{tool_path}/electromagnet")
+        visual.GetPrim().GetReferences().AddReference(cfg.electromagnet_usd_path)
+        # Source cylinder spans Y=[0,depth]. Rotate its +Y working face to
+        # tool-local +X, with the back/mounting face at the elbow-tip joint.
+        visual.AddRotateZOp().Set(-90.0)
+        # A dense CAD convex hull can enlarge its caps during cooking. An
+        # analytic cylinder preserves the measured working plane exactly.
+        collider = UsdGeom.Cylinder.Define(stage, f"{tool_path}/magnet_collision")
+        collider.CreateAxisAttr("X")
+        collider.CreateRadiusAttr(cfg.magnet_diameter / 2.0)
+        collider.CreateHeightAttr(cfg.magnet_depth)
+        collider.AddTranslateOp().Set(Gf.Vec3d(cfg.magnet_depth / 2.0, 0.0, 0.0))
+        collider.CreateVisibilityAttr(UsdGeom.Tokens.invisible)
+        UsdPhysics.CollisionAPI.Apply(collider.GetPrim()).CreateCollisionEnabledAttr(True)
+        collision = PhysxSchema.PhysxCollisionAPI.Apply(collider.GetPrim())
+        collision.CreateRestOffsetAttr(0.0)
+        collision.CreateContactOffsetAttr(0.001)
+        mass = UsdPhysics.MassAPI.Apply(tool)
+        radius, depth = cfg.magnet_diameter / 2.0, cfg.magnet_depth
+        mass.CreateMassAttr(cfg.magnet_mass)
+        mass.CreateCenterOfMassAttr(Gf.Vec3f(depth / 2.0, 0.0, 0.0))
+        mass.CreateDiagonalInertiaAttr(Gf.Vec3f(
+            cfg.magnet_mass * radius**2 / 2.0,
+            cfg.magnet_mass * (3.0 * radius**2 + depth**2) / 12.0,
+            cfg.magnet_mass * (3.0 * radius**2 + depth**2) / 12.0))
+        mass.CreatePrincipalAxesAttr(Gf.Quatf(1.0))
+        # Adjacent links intentionally meet at their mounting joint.
+        UsdPhysics.FilteredPairsAPI.Apply(tool).GetFilteredPairsRel().AddTarget(elbow.GetPath())
+        face = UsdGeom.Xform.Define(stage, f"{tool_path}/magnetic_face")
+        face.AddTranslateOp().Set(Gf.Vec3d(depth, 0.0, 0.0))
+        face.GetPrim().CreateAttribute("magnet:radius", Sdf.ValueTypeNames.Double).Set(radius)
+        face.GetPrim().CreateAttribute("magnet:normal", Sdf.ValueTypeNames.Double3).Set(Gf.Vec3d(1, 0, 0))
 
 
 @clone
@@ -149,6 +228,8 @@ def spawn_pingu_body_and_arms(
             joint.GetLocalPos0Attr().Set(new_pos0)
             joint.GetLocalRot0Attr().Set(new_rot0)
 
+        _attach_electromagnets(stage, arms_prim_path, cfg)
+
         # the arms' own world anchor is now unused -- deactivate it and the joint that fixed it to world
         for unused_path in (f"{arms_prim_path}/joints/scene_to_world", f"{arms_prim_path}/world"):
             unused_prim = stage.GetPrimAtPath(unused_path)
@@ -197,6 +278,11 @@ class PinguBodyArmsCfg(RigidObjectSpawnerCfg):
     arms_usd_path: str = MISSING
     """Path to the USD file containing the Pingu arms (left/right shoulder-elbow-tool chains)."""
 
+    electromagnet_usd_path: str = MISSING
+    magnet_diameter: float = 0.04
+    magnet_depth: float = 0.03
+    magnet_mass: float = 0.15  # kg, supplied hardware mass
+
     articulation_props: schemas.ArticulationRootPropertiesCfg | None = None
     """Properties to apply to the (body's) articulation root."""
 
@@ -218,6 +304,7 @@ PINGU_MAGNETIC_WALKING_CFG = ArticulationCfg(
     spawn=PinguBodyArmsCfg(
         body_usd_path=f"{ISAACLAB_ASSETS_DATA_DIR}/Robots/SpaceR-TheDreamLab/UniluFP_RL/pingu_body_rotated.usdc",
         arms_usd_path=f"{ISAACLAB_ASSETS_DATA_DIR}/Robots/SpaceR-TheDreamLab/UniluFP_RL/pingu_arms_rotated.usdc",
+        electromagnet_usd_path=f"{ISAACLAB_ASSETS_DATA_DIR}/Robots/SpaceR-TheDreamLab/UniluFP_RL/electromagnet_attach.usdc",
         rigid_props=sim_utils.RigidBodyPropertiesCfg(
             disable_gravity=True,
             max_linear_velocity=1000.0,
